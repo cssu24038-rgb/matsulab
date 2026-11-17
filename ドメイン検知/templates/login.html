@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}ログイン | ドメイン検知{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block content %}
+<div class="login-wrap">
+  <section class="login-card">
+    <div class="login-badge" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 6.5h16v11H4z"/>
+        <path d="M4 7l8 6 8-6"/>
+      </svg>
+    </div>
+    <h1>送信ドメインの<br>信頼性をチェック</h1>
+    <p class="login-lead">
+      届いたメールのドメインを調べて、危険度を5段階でお知らせします。
+      セキュリティの知識がない方でも、ひと目で判断できます。
+    </p>
+
+    <ul class="login-points">
+      <li><span class="dot dot-green"></span>危険度を5段階・色分けで表示</li>
+      <li><span class="dot dot-green"></span>むずかしい専門用語なしの「やさしい表示」</li>
+      <li><span class="dot dot-green"></span>調べた履歴と危険メールを保存</li>
+    </ul>
+
+    <form action="{{ url_for('login', next=request.args.get('next')) }}" method="post">
+      <button class="google-btn" type="submit">
+        <span class="google-g" aria-hidden="true">G</span>
+        Google でログイン
+      </button>
+    </form>
+
+    <p class="demo-note">
+      デモ用のログインです。実際の Google 認証（OAuth 2.0）は後から実装します。
+    </p>
+  </section>
+
+  <section class="login-preview" aria-hidden="true">
+    <div class="preview-card lv-5">
+      <div class="preview-head">
+        <span class="muted">判定結果の例</span>
+        <span class="level-pill lv-5">非常に危険</span>
+      </div>
+      <p class="preview-domain">paypa1-secure.top</p>
+      <div class="gauge">
+        {% for i in range(1, 6) %}<span class="gauge-seg is-on"></span>{% endfor %}
+      </div>
+      <div class="preview-reason"><span class="reason-icon bad">!</span>なりすまし対策が未設定です</div>
+      <div class="preview-reason"><span class="reason-icon warn">!</span>登録から12日しか経っていません</div>
+    </div>
+    <div class="preview-card preview-card-sub lv-1">
+      <div class="preview-head">
+        <span class="muted">安全な例</span>
+        <span class="level-pill lv-1">安全</span>
+      </div>
+      <p class="preview-domain">gmail.com</p>
+      <div class="gauge">
+        <span class="gauge-seg is-on"></span><span class="gauge-seg"></span><span class="gauge-seg"></span><span class="gauge-seg"></span><span class="gauge-seg"></span>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}{{ result.domain }} の判定結果 | ドメイン検知{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb" aria-label="パンくず">
+  <a href="{{ url_for('index') }}">ホーム</a>
+  <span aria-hidden="true">/</span>
+  <span>判定結果</span>
+</nav>
+
+<section class="result-hero {{ result.color_key }}">
+  <div class="result-hero-top">
+    <div>
+      <p class="eyebrow">判定結果</p>
+      <h1 class="result-domain">{{ result.domain }}</h1>
+      <p class="result-meta">
+        {% if result.input_type == 'email' %}メールアドレスから抽出{% else %}ドメインを直接指定{% endif %}
+        ・{{ result.created_at|jpdate }} に調査
+      </p>
+    </div>
+    <div class="result-verdict">
+      <span class="verdict-score">{{ result.score }}<small>/5</small></span>
+      <span class="level-pill {{ result.color_key }}">{{ result.label }}</span>
+    </div>
+  </div>
+
+  <div class="gauge-wrap">
+    <div class="gauge gauge-lg" role="img" aria-label="危険度 {{ result.score }} / 5">
+      {% for i in range(1, 6) %}
+      <span class="gauge-seg {{ 'is-on' if i <= result.score else '' }}"></span>
+      {% endfor %}
+    </div>
+    <div class="gauge-labels">
+      <span>安全</span>
+      <span>非常に危険</span>
+    </div>
+  </div>
+
+  <p class="result-one-liner">{{ result.one_liner }}</p>
+  <p class="result-advice">{{ result.advice }}</p>
+
+  <div class="result-actions">
+    <a class="btn btn-primary" href="#save">このメールを保存する</a>
+    <a class="btn btn-secondary" href="{{ url_for('detail', result_id=result.id) }}">くわしい表示を見る</a>
+    <a class="btn btn-ghost" href="{{ url_for('index') }}">もう一度調べる</a>
+  </div>
+</section>
+
+<div class="result-body">
+  <section class="card">
+    <div class="card-head">
+      <h2 class="card-title">判定の根拠</h2>
+      <span class="muted small">{{ result.reasons|length }} 件</span>
+    </div>
+    <p class="section-lead">セキュリティの知識がない方にもわかる言葉で説明します。</p>
+
+    <ul class="reason-list">
+      {% for reason in result.reasons %}
+      <li class="reason-card">
+        <span class="reason-icon {{ reason.severity }}" aria-hidden="true">
+          {% if reason.severity == 'good' %}✓{% elif reason.severity == 'info' %}i{% else %}!{% endif %}
+        </span>
+        <div>
+          <h3>{{ reason.title }}</h3>
+          <p>{{ reason.detail }}</p>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <div class="inline-note">
+      <span class="inline-note-icon" aria-hidden="true">i</span>
+      <p>
+        技術的な根拠（SPF / DKIM / DMARC、VirusTotal の検出数など）は
+        <a href="{{ url_for('detail', result_id=result.id) }}">くわしい表示</a>で確認できます。
+      </p>
+    </div>
+  </section>
+
+  <section class="card save-card" id="save">
+    <div class="card-head">
+      <h2 class="card-title">このメールを保存する</h2>
+      <span class="badge-demo">デモ</span>
+    </div>
+    <p class="section-lead">
+      危険なメールを記録として残せます。保存したメールは「保存したメール」一覧から確認・削除できます。
+    </p>
+
+    <form action="{{ url_for('save_mail', result_id=result.id) }}" method="post" class="form-grid">
+      <div class="field">
+        <label for="subject">件名</label>
+        <input id="subject" name="subject" type="text" value="{{ default_subject }}">
+      </div>
+      <div class="field">
+        <label for="sender_name">差出人名</label>
+        <input id="sender_name" name="sender_name" type="text" value="{{ default_sender_name }}">
+      </div>
+      <div class="field">
+        <label for="sender_email">差出人メールアドレス</label>
+        <input id="sender_email" name="sender_email" type="text" value="{{ default_sender_email }}">
+      </div>
+      <div class="field field-full">
+        <label for="memo">メモ（任意）</label>
+        <textarea id="memo" name="memo" rows="2" placeholder="例: 身に覚えのないメールだった"></textarea>
+      </div>
+      <div class="field-full form-actions">
+        <button class="btn btn-primary" type="submit">保存する</button>
+        <span class="muted small">※ 保存処理はダミーです</span>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

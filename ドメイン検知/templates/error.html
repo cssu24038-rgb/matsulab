@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} | ドメイン検知{% endblock %}
+
+{% block content %}
+<section class="card empty-state">
+  <p class="error-code">{{ code }}</p>
+  <h1>{{ message }}</h1>
+  <p>URL が変わったか、データがリセットされた可能性があります。</p>
+  <a class="btn btn-primary" href="{{ url_for('index') }}">ホームへ戻る</a>
+</section>
+{% endblock %}

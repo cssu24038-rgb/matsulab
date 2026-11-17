@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}保存したメール | ドメイン検知{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">保存したメール</span>
+    <h1>危険メールの記録</h1>
+    <p class="muted">判定したメールを保存して、あとから見返せます。保存・削除はデモ動作です。</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('index') }}">新しく調べる</a>
+</div>
+
+{% if mails %}
+<section class="card">
+  <div class="card-head">
+    <h2 class="card-title">保存一覧</h2>
+    <span class="muted small">{{ mails|length }} 件</span>
+  </div>
+
+  <ul class="mail-list">
+    {% for mail in mails %}
+    {% set r = results_by_id.get(mail.result_id) %}
+    <li class="mail-item">
+      <div class="mail-item-main">
+        <div class="mail-item-top">
+          {% if r %}
+          <span class="level-pill {{ r.color_key }}">{{ r.label }}</span>
+          {% else %}
+          <span class="level-pill lv-3">判定なし</span>
+          {% endif %}
+          <a class="mail-subject" href="{{ url_for('mail_detail', mail_id=mail.id) }}">{{ mail.subject }}</a>
+        </div>
+        <p class="mail-from">{{ mail.sender_name }} &lt;{{ mail.sender_email }}&gt;</p>
+        <p class="mail-dates">
+          受信 {{ mail.received_at|jpdate }} ／ 保存 {{ mail.saved_at|jpdate }}
+        </p>
+      </div>
+      <div class="mail-item-actions">
+        <a class="btn btn-secondary btn-sm" href="{{ url_for('mail_detail', mail_id=mail.id) }}">詳細</a>
+        <form action="{{ url_for('delete_mail', mail_id=mail.id) }}" method="post"
+              data-confirm="「{{ mail.subject }}」を削除しますか？">
+          <button class="btn btn-danger-ghost btn-sm" type="submit">削除</button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% else %}
+<section class="card empty-state">
+  <div class="empty-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 6.5h16v11H4z"/><path d="M4 7l8 6 8-6"/>
+    </svg>
+  </div>
+  <h2>まだ保存されたメールはありません</h2>
+  <p>ドメインを調べたあと、判定結果の画面から「このメールを保存する」を押すとここに追加されます。</p>
+  <a class="btn btn-primary" href="{{ url_for('index') }}">ドメインを調べる</a>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

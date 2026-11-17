@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ result.domain }} の詳細 | ドメイン検知{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb" aria-label="パンくず">
+  <a href="{{ url_for('index') }}">ホーム</a>
+  <span aria-hidden="true">/</span>
+  <a href="{{ url_for('result', result_id=result.id) }}">判定結果</a>
+  <span aria-hidden="true">/</span>
+  <span>くわしい表示</span>
+</nav>
+
+<div class="detail-head">
+  <div>
+    <p class="eyebrow">専門家向けの詳細</p>
+    <h1>{{ result.domain }}</h1>
+    <p class="result-meta">{{ result.created_at|jpdate }} に調査</p>
+  </div>
+  <span class="level-pill level-pill-lg {{ result.color_key }}">{{ result.label }}（{{ result.score }}/5）</span>
+</div>
+
+<div class="view-tabs" role="tablist" aria-label="表示の切り替え">
+  <a class="view-tab" href="{{ url_for('result', result_id=result.id) }}">やさしい表示</a>
+  <a class="view-tab is-active" href="{{ url_for('detail', result_id=result.id) }}" aria-current="page">くわしい表示</a>
+</div>
+
+<section class="card">
+  <div class="card-head">
+    <h2 class="card-title">技術的なチェック結果</h2>
+    <span class="muted small">ダミーデータ</span>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th scope="col">項目</th><th scope="col">結果</th><th scope="col">判定</th></tr>
+      </thead>
+      <tbody>
+        {% for item in result.evidence %}
+        <tr>
+          <th scope="row">{{ item.label }}</th>
+          <td class="mono">{{ item.value }}</td>
+          <td>
+            <span class="status-chip status-{{ item.status }}">
+              {% if item.status == 'good' %}問題なし
+              {% elif item.status == 'warn' %}要注意
+              {% elif item.status == 'bad' %}危険
+              {% else %}参考情報{% endif %}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2 class="card-title">検出内容と技術的な根拠</h2>
+  </div>
+  <ul class="reason-list">
+    {% for reason in result.reasons %}
+    <li class="reason-card">
+      <span class="reason-icon {{ reason.severity }}" aria-hidden="true">
+        {% if reason.severity == 'good' %}✓{% elif reason.severity == 'info' %}i{% else %}!{% endif %}
+      </span>
+      <div>
+        <h3>{{ reason.title }}</h3>
+        <p>{{ reason.technical }}</p>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<details class="card raw-card">
+  <summary>生データ（JSON）を表示</summary>
+  <pre class="raw-json">{{ result.raw_json()|tojson(indent=2) }}</pre>
+</details>
+
+<div class="page-actions">
+  <a class="btn btn-secondary" href="{{ url_for('result', result_id=result.id) }}">← やさしい表示に戻る</a>
+  <a class="btn btn-ghost" href="{{ url_for('index') }}">ホームへ</a>
+</div>
+{% endblock %}

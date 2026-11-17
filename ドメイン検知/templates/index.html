@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}ホーム | ドメイン検知{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-text">
+    <span class="eyebrow">送信ドメインの信頼性評価</span>
+    <h1>そのメール、<br>安全かどうか調べます。</h1>
+    <p>
+      メールアドレス、またはドメインを入力してください。
+      なりすましの兆候や評判をもとに、危険度を5段階で判定します。
+    </p>
+  </div>
+  <div class="hero-mark" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3l7 3v5.5c0 4.5-3 7.5-7 9.5-4-2-7-5-7-9.5V6l7-3z"/>
+      <path d="M9 12l2 2 4-4"/>
+    </svg>
+  </div>
+</section>
+
+<div class="dashboard">
+  <div class="dashboard-main">
+    <section class="card search-card">
+      <h2 class="card-title">ドメインを調べる</h2>
+      <form action="{{ url_for('analyze_domain') }}" method="post" class="search-form">
+        <label class="sr-only" for="query">メールアドレスまたはドメイン</label>
+        <div class="input-wrap">
+          <span class="input-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+            </svg>
+          </span>
+          <input id="query" name="query" type="text" autocomplete="off"
+                 placeholder="example.com / info@example.com" required>
+        </div>
+        <button class="btn btn-primary" type="submit">調べる</button>
+      </form>
+
+      <div class="samples">
+        <span class="muted">入力例:</span>
+        <button type="button" class="chip" data-sample="gmail.com">gmail.com</button>
+        <button type="button" class="chip" data-sample="paypa1-secure.top">paypa1-secure.top</button>
+        <button type="button" class="chip" data-sample="support-center.net">support-center.net</button>
+        <button type="button" class="chip" data-sample="info@amazon.co.jp">info@amazon.co.jp</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">最近の調査</h2>
+        <a href="{{ url_for('history') }}" class="text-link">すべて見る</a>
+      </div>
+
+      {% if history %}
+      <ul class="list">
+        {% for item in history %}
+        <li>
+          <a class="list-row" href="{{ url_for('result', result_id=item.id) }}">
+            <span class="level-pill {{ item.color_key }}">{{ item.label }}</span>
+            <span class="list-main">
+              <span class="list-title">{{ item.domain }}</span>
+              <span class="list-sub">{{ item.input_type == 'email' and 'メールアドレス' or 'ドメイン' }}・{{ item.created_at|jpdate }}</span>
+            </span>
+            <span class="chevron" aria-hidden="true">›</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="empty">まだ調査履歴はありません。上のフォームから調べてみましょう。</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <aside class="dashboard-side">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">保存したメール</h2>
+        <a href="{{ url_for('mails') }}" class="text-link">一覧</a>
+      </div>
+
+      {% if mails %}
+      <ul class="mail-mini-list">
+        {% for mail in mails %}
+        {% set r = results_by_id.get(mail.result_id) if results_by_id else none %}
+        <li>
+          <a class="mail-mini" href="{{ url_for('mail_detail', mail_id=mail.id) }}">
+            <div class="mail-mini-top">
+              {% if r %}<span class="level-dot {{ r.color_key }}" title="{{ r.label }}"></span>{% endif %}
+              <span class="mail-mini-subject">{{ mail.subject }}</span>
+            </div>
+            <div class="mail-mini-meta">{{ mail.sender_email }}・{{ mail.saved_at|jpdate }}</div>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="empty">保存したメールはありません。判定結果の画面から保存できます。</p>
+      {% endif %}
+    </section>
+
+    <section class="card legend-card">
+      <h2 class="card-title">危険度の見方</h2>
+      <ul class="legend">
+        {% for score, meta in levels.items() %}
+        <li>
+          <span class="level-pill lv-{{ score }}">{{ meta.label }}</span>
+          <span class="legend-desc">
+            {% if score == 1 %}問題は見つかりませんでした
+            {% elif score == 2 %}ほぼ安全ですが念のため確認
+            {% elif score == 3 %}リンクを開く前に確認を
+            {% elif score == 4 %}開かずに削除をおすすめ
+            {% else %}開かずにすぐ削除してください{% endif %}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

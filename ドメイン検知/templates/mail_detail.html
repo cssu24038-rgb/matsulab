@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ mail.subject }} | ドメイン検知{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb" aria-label="パンくず">
+  <a href="{{ url_for('mails') }}">保存したメール</a>
+  <span aria-hidden="true">/</span>
+  <span>メール詳細</span>
+</nav>
+
+<div class="detail-head">
+  <div>
+    <p class="eyebrow">保存したメール</p>
+    <h1 class="mail-detail-subject">{{ mail.subject }}</h1>
+    <p class="result-meta">{{ mail.sender_name }} &lt;{{ mail.sender_email }}&gt;</p>
+  </div>
+  {% if result %}
+  <span class="level-pill level-pill-lg {{ result.color_key }}">{{ result.label }}（{{ result.score }}/5）</span>
+  {% endif %}
+</div>
+
+<div class="mail-detail-grid">
+  <section class="card">
+    <h2 class="card-title">メール情報</h2>
+    <dl class="meta-list">
+      <div><dt>差出人</dt><dd>{{ mail.sender_name }} &lt;{{ mail.sender_email }}&gt;</dd></div>
+      <div><dt>件名</dt><dd>{{ mail.subject }}</dd></div>
+      <div><dt>受信日時</dt><dd>{{ mail.received_at|jpdate }}</dd></div>
+      <div><dt>保存日時</dt><dd>{{ mail.saved_at|jpdate }}</dd></div>
+      <div><dt>対象ドメイン</dt><dd class="mono">{{ result.domain if result else mail.sender_email.split('@')[-1] }}</dd></div>
+    </dl>
+
+    <h3 class="sub-heading">本文（ダミー）</h3>
+    <div class="mail-body">{{ mail.body_preview }}</div>
+
+    {% if mail.memo %}
+    <h3 class="sub-heading">メモ</h3>
+    <div class="mail-memo">{{ mail.memo }}</div>
+    {% endif %}
+  </section>
+
+  <aside class="mail-detail-side">
+    {% if result %}
+    <section class="card result-mini {{ result.color_key }}">
+      <p class="eyebrow">このメールの判定</p>
+      <div class="result-mini-top">
+        <strong>{{ result.domain }}</strong>
+        <span class="level-pill {{ result.color_key }}">{{ result.label }}</span>
+      </div>
+      <div class="gauge">
+        {% for i in range(1, 6) %}
+        <span class="gauge-seg {{ 'is-on' if i <= result.score else '' }}"></span>
+        {% endfor %}
+      </div>
+      <p class="result-mini-text">{{ result.one_liner }}</p>
+      <div class="stacked-actions">
+        <a class="btn btn-secondary btn-sm" href="{{ url_for('result', result_id=result.id) }}">判定結果を見る</a>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('detail', result_id=result.id) }}">くわしい表示</a>
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="card">
+      <h2 class="card-title">操作</h2>
+      <div class="stacked-actions">
+        <form action="{{ url_for('delete_mail', mail_id=mail.id) }}" method="post"
+              data-confirm="「{{ mail.subject }}」を削除しますか？">
+          <button class="btn btn-danger btn-block" type="submit">このメールを削除</button>
+        </form>
+        <a class="btn btn-ghost btn-block" href="{{ url_for('mails') }}">一覧に戻る</a>
+      </div>
+      <p class="muted small">※ 削除はデモ動作で、再起動すると元に戻ります。</p>
+    </section>
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}
